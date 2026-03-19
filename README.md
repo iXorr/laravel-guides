@@ -1,20 +1,24 @@
-# Тема 2 - Проектирование БД и модели
+# Тема 2 - Проектирование БД
 
-Создавать и наполнять таблицы можно не только через phpMyAdmin.
+Создавать и наполнять таблицы можно не только через phpMyAdmin. 
 
 Есть подход **code-first**. Это означает, что все сущности и связи между ними мы описываем при помощи PHP-кода.
 
-> Если же вас полностью устраивает phpMyAdmin, можете пропустить пункты с миграциями и сидерами.
-
-По этой теме мы будем работать с папками ``database`` и ``app\Models``.
+По этой теме мы будем работать с папкой ``database``.
 
 Также, с этой темы мы разрабатываем сайт по заданию из ``TASK.md``.
 
+> Если же вас полностью устраивает phpMyAdmin, можете пропустить теорию и переходить сразу к практической части.
+
+## Практическая часть
+
+Создайте таблицы ``user_roles``, ``users``, ``courses``, ``statuses``, ``applications`` (заявки). Добавьте пользователя-админа.
+
 ## Валидация данных
 
-Если в задании описывают сущность, то могут быть упоминания вроде «не менее 6 символов», «кириллица и пробелы», «формат: 8(XXX)XXX-XX-XX» и прочее.
+Если в задании описывают сущность, то могут быть упоминания, вроде «не менее 6 символов», «кириллица и пробелы», «формат: 8(XXX)XXX-XX-XX» и прочее.
 
-Проверка (валидация) данных будет происходить в другом месте - в **контроллерах**. До них мы дойдём позже.
+Проверка данных (валидация) будет происходить в другом месте - в **контроллерах**.
 
 ## Миграции
 
@@ -36,23 +40,20 @@ public function up(): void
         $table->string('email')->unique(); // с ограничением уникальности
         $table->string('note')->nullable(); // может хранить значение NULL
         $table->boolean('is_admin')->default(true); // со значением по умолчанию
-        $table->enum('is_role', ['admin', 'client'])->default('client');
+        $table->enum('status', ['new', 'accepted'])->default('new');
         $table->timestamps(); // два поля - created_at, updated_at
     });
 }
 ```
 
+> Enum'ы - удобная штука для выбора роли пользователя или статуса заказа. Но она нарушает 3НФ.
+
 Поля ``id`` и ``timestamps`` появляются по умолчанию при создании новых миграций. Советую их просто оставлять.
 
 ### Пример связи
 ```php
-public function up(): void
-{
-    Schema::create('applications', function (Blueprint $table) {
-        $table->foreignId('course_id') // вторичный ключ
-          ->contstrained('courses');   // таблица, куда мы ссылаемся
-    });
-}
+$table->foreignId('user_role_id') // вторичный ключ
+    ->constrained('user_roles');  // таблица, куда мы ссылаемся
 ```
 
 ### Создание новой миграции
@@ -73,76 +74,51 @@ php artisan migrate --seed # создание, затем - заполнение
 php artisan migrate:refresh --seed # пересоздание, затем - заполнение
 ```
 
-## Модели
+## Сидеры
 
-Одна таблица - одна модель.
+Сидеры - файлы для наполнения таблиц тестовыми данными.
 
-> Модели автоматически цепляются к таблицам из БД, но они должны быть названы так же, как сами таблицы, только в единственном числе и с большой буквы (например, таблица - ``posts``, модель - ``Post``).
+> Но нам потребуется только **DatabaseSeeder** - главный файл-сидер.
 
-Модель с пользователем также есть по умолчанию.
+Используя тот же фасад **DB**, добавляем роли и админа (логин и пароль - по ТЗ).
 
-> Будьте аккуратнее с protected-полем **$casts**: оно отвечает за преобразование данных и в нём обычно прописано хэширование паролей. Советую просто удалить это поле.
-
-В моделях важны следующие protected-поля:
-
-- **$fillable**: массив с атрибутами, которые будут приниматься при создании или изменении записи в таблице. Будьте с ним особенно внимательны; если в HTTP-запросе, например, вы передаёте ``first_name`` и ``last_name``, но в модели они не прописаны, возникнет или пустой SQL-запрос, или ошибка.
-- **$table**: название таблицы; используем это поле, только если слово на латинице сложно склоняется (``user -> users`` легко склоняется, ``person -> people`` или ``history -> histories`` - нет)
-- **$timestamps**: флаг, который показывает, есть ли в нашей таблицы метки времени создания и изменения записи. По умолчанию стоит **true**, но если вы не пользовались миграциями - поставьте **false**, иначе будет ошибка с SQL-запросом.
-
-### Создание модели
-
-```bash
-php artisan make:model Application
-```
-
-### Создание связи
-
-Представим, что у нас есть две таблицы: **applications** (заявки) с вторичным ключом ``course_id`` и **courses**. Для обеих - соответствующие модели.
-
-Чтобы через заявки обращаться к связанному курсу, нам нужно написать метод **course()**:
 ```php
 <?php
 
-// app/models/Application.php
+// database/seeders/DatabaseSeeder.php
 
-namespace App\Models;
+namespace Database\Seeders;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
-class Application extends Model
+class DatabaseSeeder extends Seeder
 {
-    use HasFactory;
-
-    protected $fillable = [
-        // поля заявки
-    ];
-
-    public function course()
+    public function run(): void
     {
-        return $this->belongsTo(Course::class);
+        DB::table('user_roles')->insert([
+            'title' => 'admin'
+        ]);
+        
+        DB::table('user_roles')->insert([
+            'title' => 'client'
+        ]);
+
+        $adminRoleId = DB::table('user_roles')
+            ->where('title', 'admin')
+            ->value('id');
+
+        DB::table('users')->insert([
+            'user_role_id' => $adminRoleId,
+            'login' => 'Admin',
+            'password' => 'KorokNET',
+            // ...
+        ]);
     }
 }
 ```
 
-Далее, применение модели может выглядеть так:
-```php
-<?php
-
-// routes/web.php
-
-use Illuminate\Support\Facades\Route;
-
-use App\Models\Application; // обязательно сами подключаем модели
-
-Route::get('/', function() {
-    $app = Application::find(1); // находим заявку с ID = 1
-    dump($app->created_at);      // отображаем дату создания
-    dump($app->course->title);   // отображаем название СВЯЗАННОГО курса
-});
-
+Запустите сидер:
 ```
-
-## Сидеры
-
-Сидеры - файлы для наполнения таблиц тестовыми данными. 
+php artisan db:seed
+```
