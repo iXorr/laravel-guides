@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
             'middle_name' => 'Admin',
             'phone' => '8(900)900-90-90',
             'password' => 'KorokNET',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 }
