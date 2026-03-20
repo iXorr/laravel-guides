@@ -34,6 +34,7 @@ public function up(): void
 {
     Schema::create('users', function (Blueprint $table) {
         $table->id('user_id');
+
         $table->string('name'); // до 255 символов
         $table->text('description'); // до 65535 символов
         $table->integer('age');
@@ -41,6 +42,8 @@ public function up(): void
         $table->string('note')->nullable(); // может хранить значение NULL
         $table->boolean('is_admin')->default(true); // со значением по умолчанию
         $table->enum('status', ['new', 'accepted'])->default('new');
+        $table->timestamp('start_date'); // колонка с желаемой датой начала
+        
         $table->timestamps(); // два поля - created_at, updated_at
     });
 }
