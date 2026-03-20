@@ -8,11 +8,13 @@
 
 ## Практическая часть
 
-1. Создайте модели для всех таблиц.
-2. Отобразите список пользователей (с одним админом); можно через метод **index** контроллера **DBCheckController**.
-3. Отобразите админа (одну запись) вместе с названием его роли.
+1. Создайте модели для всех таблиц со связами.
+2. Отобразите список пользователей (преобразуйте коллекцию в массив).
+3. Отобразите имя админа (пользователя с логином ``Admin``), а также название его роли.
 
-## Модели
+## Определение моделей
+
+Модели (или модели Eloquent) - классовая обёртка для таблиц из БД.
 
 Одна таблица - одна модель.
 
@@ -32,143 +34,46 @@
 - **$table**: название таблицы; используем это поле, только если слово на латинице сложно склоняется (``user -> users`` легко склоняется, ``person -> people`` или ``history -> histories`` - нет)
 - **$timestamps**: флаг, который показывает, есть ли в нашей таблицы метки времени создания и изменения записи. По умолчанию стоит **true**, но если вы не пользовались миграциями - поставьте **false**, иначе будет ошибка с SQL-запросом.
 
-### Создание модели
+## Создание модели
 
 ```bash
 php artisan make:model Course
 ```
 
-> Для пользователей всегда используйте заготовленную модель. У неё расширенный функционал (авторизация), нежели чем у обычной модели.
+> Для пользователей всегда используйте заготовленную модель. У неё расширенный функционал (авторизация), нежели чем у обычной модели, засчёт класса ``Authenticatable``.
 
-### Глобальное обращение к модели
+## Типы возвращаемых значений при работе с моделями
 
-Вам нужно вернуть список пользователей:
+Методы Eloquent возвращают один из двух типов:
+
+| Что возвращает | Пример | Что это | Когда использовать |
+|---------------|--------|---------|-------------------|
+| **Данные** (готовая коллекция или модель) | `User::all()`, `$user->role` | `Collection` или `User` | Когда нужно работать с результатами: выводить в шаблоне, перебирать, читать поля |
+| **Запрос** (ещё не выполнен) | `User::where(...)`, `$user->role()` | `QueryBuilder` или `UserRole` | Когда нужно уточнить запрос: добавить условия, сортировку, связи |
+
 ```php
-<?php
+// Данные — можно сразу использовать
+$users = User::all();                     // Collection или [] 
+$user = User::find(1);                    // User или NULL
+$role = $user->role;                      // User или NULL
 
-// app/Http/Controllers/DBCheckController.php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-
-use App\Models\User; // подключаете модель
-
-class DBCheckController extends Controller
-{
-    public function index(Request $request)
-    {
-        dd(User::all()); // обращаетесь к ней глобально
-    }
-}
+// Запрос — нужно выполнить
+$query = User::where('login', 'Admin');   // Query Builder
+$relation = $user->role();                // Relation object
 ```
 
-Вы обращаетесь к глобальному классу **User**, а через него - **all()** - и он возвращает вам коллекцию пользователей.
-
-Методы, возвращающие данные (коллекцию):
-- all()
-- find(**$id**)
-- findOrFail(**$id**) - если записи нет, выбрасывается ``404``
-
-Методы, возвращающие НЕ данные, а отношение:
-- where(**$field**, **$value**)
-- role() - или любой метод связи
-- create(**$data**)
-- update(**$data**)
-- delete()
-
-Последние три играют особую роль в контроллерах и, по сути, представляют собой реализацию CRUD-операций.
-
-### Создание связи
-
-У нас есть две таблицы: **users** с вторичным ключом ``user_role_id`` и **user_roles**. Для обеих есть и соответствующие модели.
-
-Чтобы через пользователя обращаться к его роли, нам нужно написать метод **role()**:
+**Collection** - это объект-обёртка над массивом данных. Он позволяет:
 ```php
-<?php
+$users = User::all();
 
-// app/Models/User.php
+// Обращаться как к объекту (вместо $users[0]['name'])
+$users->first()->name;
 
-namespace App\Models;
-
-use Illuminate\Foundation\Auth\User as Authenticatable;
-
-class User extends Authenticatable
-{
-    protected $fillable = [
-        'user_role_id',
-        'login',
-        // прочие поля пользователя
-    ];
-
-    public function role()
-    {
-        return $this->belongsTo(UserRole::class);
-    }
-}
-```
-
-> Один вторичный ключ = одна связь.
-
-Cвязи имеют те же разновидности (``1:1``, ``1:M``, ``M:M``):
-1. belongsTo(**класс**, **вторичный ключ**, **локальный ключ**).
-2. hasOne(**класс**, **вторичный ключ**, **локальный ключ**).
-3. belongsToMany(**класс**, **вторичный ключ**, **локальный ключ**).
-4. hasMany(**класс**, **вторичный ключ**, **локальный ключ**).
-
-Эти связи делятся на прямые (has) - внешний ключ находится в другой таблице - и обратные (belongs) - у текущей модели есть внешний ключ.
-
-> Если вдруг получится, что связь есть, а данных по ней - нет, попробуйте вручную указать вторичный ключ (Laravel по умолчанию ожидает стандартные имена ключей - например, ``user_id``, а у вас - просто ``id``), потом - локальный (т.е. атрибут текущей таблицы), потом - поменять связь с прямой на обратную.
-
-Применение связи в модели может выглядеть так:
-```php
-<?php
-
-// app/Http/Controllers/DBCheckController.php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-
-use App\Models\User;
-
-class DBCheckController extends Controller
-{
-    public function index(Request $request)
-    {
-        $user = User::find(1);   // берём пользователя с ID = 1
-        
-        dump($user->first_name); // отображаем его имя
-        dd($user->role->title);  // отображаем название СВЯЗАННОЙ роли
-    }
-}
-```
-
-> Обращайтесь к ``role`` как к свойству классу, а не вызывайте как метод.
-
-
-### Типы модели: Eloquent и Collection
-
-При работе с моделями есть одна особенность: они возвращают или **Collection**, или **Eloquent**.
-```php
-dump($user->role);     // возвращаются данные    - Collection или NULL
-dump($user->role());   // возвращается отношение - Eloquent
-
-dump(User::all());     // возвращаются данные    - Collection или NULL
-dump(User::where('first_name', 'John')); // возвращается отношение - Eloquent
-```
-
-**Collection** - тип данных, расширяющий обычный массив, превращающий его в объект и меняющий обращение к его элементам: вместо обращения по индексам - обращение по свойствам.
-```php
-$user = [
-    'login' => 'test',
-    'password' => 'qwe123'
-]; // обычный массив
-
-$user = User::where('login', 'test')->first(); // запись с теми же данными
-
-$user->login;    // test
-$user->password; // qwe123
+// Удобные методы
+$users->where('login', 'admin');   // фильтрация
+$users->pluck('email');            // получить список по полю
+$users->count();                   // количество
+$users->isNotEmpty();              // проверить, пустой ли список
 ```
 
 Если нужно быстро отобразить коллекцию (проверить, что приходят нужные данные), используйте метод **toArray()**:
@@ -194,17 +99,191 @@ dump($user->toArray()); // ['login' => 'test', 'password' => 'qwe123']
 </div>
 ```
 
-Но если вам вернётся Eloquent-отношение, та же запись в шаблоне вызовет ошибку.
+Но если вам вернётся запрос, та же запись в шаблоне вызовет ошибку.
 
-**Eloquent-отношение** - это что-то, вроде SQL-запроса, который ждёт своего выполнения. И, раз он ещё не выполнен, его можно дописать:
+Запрос, ожидающий своё выполнение, можно дописать (добавив условия):
 
 ```php
 dump($user->role()->where('title', 'admin'));
 dump(User::where('first_name', 'John')->where('last_name', 'Doe'));
 ```
 
-Для того, чтобы "выполнить запрос" и преобразовать Eloquent в Collection - допишите **get()** или **first()**:
+Но для того, чтобы выполнить его и преобразовать в Collection - вызовите методы **get()** или **first()**:
 ```php
 dump($user->role()->get());
 dump(User::where('first_name', 'John')->first());
+```
+
+## Обращение к модели
+
+Вам нужно вернуть список пользователей:
+```php
+<?php
+
+// app/Http/Controllers/DBCheckController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Models\User; // подключаете модель
+
+class DBCheckController extends Controller
+{
+    public function index(Request $request)
+    {
+        dd(User::all()); // обращаетесь к ней
+    }
+}
+```
+
+Вы обращаетесь к классу **User**, а через него - к методу **all()** - и он возвращает вам коллекцию пользователей.
+
+Методы, возвращающие данные (коллекцию):
+- all()
+- find(**$id**)
+- findOrFail(**$id**) - если записи нет, выбрасывается ``404``
+
+Методы, НЕ возвращающие данные:
+- where(**$field**, **$value**)
+- role() - или любой метод связи
+- create(**$data**)
+- update(**$data**)
+- delete()
+
+Последние три играют особую роль в контроллерах и, по сути, представляют собой реализацию CRUD-операций.
+
+## Создание связи
+
+### О связях в Laravel
+
+Cвязи имеют разновидности - ``1:1``, ``1:M``:
+1. hasOne(**класс**, **внешнний ключ**, **локальный ключ**).
+2. hasMany(**класс**, **внешнний ключ**, **локальный ключ**).
+
+**Внешний ключ** - первичный ключ ДРУГОЙ модели, на которую мы ссылаемся.
+
+**Локальный ключ** - вторичный ключ ВНУТРИ ТЕКУЩЕЙ модели. 
+
+> В рамках дем. экзамена связь ``M:M`` НЕ ИСПОЛЬЗУЕТСЯ, хоть методы для неё тоже есть.
+
+> Также есть обратные связи: методы, начинающиеся не с **has**, а с **belongsTo**. Разницу между ними опустим; **has**-методы проще применять.
+
+### Пример связи ``1:1``
+
+У нас есть две таблицы: **users** с вторичным ключом ``user_role_id`` и **user_roles**. Для обеих есть и соответствующие модели.
+
+Чтобы через пользователя обращаться к его роли, нам нужно написать метод **role()**.
+```php
+<?php
+
+// app/Models/User.php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    protected $fillable = [
+        'user_role_id',
+        'login',
+        // прочие поля пользователя
+    ];
+
+    public function role()
+    {
+        return $this->hasOne(UserRole::class, 'id', 'user_role_id');
+    }
+}
+```
+
+Один вторичный ключ = одна связь.
+
+> Частая ошибка: связь есть, а данных по ней - нет (возвращается ``null``, хоть данные в БД точно есть). Для решения попробуйте поменяйте внешний и локальный ключи местами.
+
+```php
+public function role()
+{
+    return $this->hasOne(UserRole::class, 'user_role_id', 'id'); // null
+}
+
+public function role()
+{
+    return $this->hasOne(UserRole::class, 'id', 'user_role_id'); // UserRole
+}
+```
+
+Применение связи в модели может выглядеть так:
+```php
+<?php
+
+// app/Http/Controllers/DBCheckController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Models\User;
+
+class DBCheckController extends Controller
+{
+    public function index(Request $request)
+    {
+        $user = User::find(1);   // берём пользователя с ID = 1
+        
+        dump($user->first_name); // отображаем его имя
+        dd($user->role->title);  // отображаем название СВЯЗАННОЙ роли
+    }
+}
+```
+
+> Обращайтесь к ``role`` как к свойству классу для получения данных.
+
+### Пример связи ``1:M``
+
+```php
+<?php
+
+// app/Models/UserRole.php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class UserRole extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title'
+    ];
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'user_role_id', 'id');
+    }
+}
+```
+
+```php
+<?php
+
+// app/Http/Controllers/DBCheckController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Models\UserRole; // подключайте модель вручную
+
+class DBCheckController extends Controller
+{
+    public function index(Request $request)
+    {
+        $adminRole = UserRole::where('title', 'admin')->firstOrFail();
+        dump($adminRole->users);
+    }
+}
 ```
