@@ -96,7 +96,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     protected $fillable = [
-        // поля пользователя
+        'user_role_id',
+        'login',
+        // прочие поля пользователя
     ];
 
     public function role()
@@ -105,6 +107,8 @@ class User extends Authenticatable
     }
 }
 ```
+
+> Один вторичный ключ = одна связь.
 
 Cвязи имеют те же разновидности (``1:1``, ``1:M``, ``M:M``):
 1. belongsTo(**класс**, **вторичный ключ**, **локальный ключ**).
