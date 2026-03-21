@@ -48,3 +48,22 @@ public function redir1()
 ```
 
 ... также добавить withErrors и withInput
+
+### Функция view()
+
+Функция ``view()`` берёт шаблоны из папки ``resources/views`` и рендерит их, возвращая статические html-страницы. Первым аргументом она принимает название шаблона (например, если шаблон находится в ``resources/views/login.blade.php``, то название - ``login``, без двойного расширения файла), а вторым аргументом - ассоциативный массив с данными, которые можно будет использовать внутри шаблона.
+
+```php
+public function showLoginForm(Request $request)
+{
+    return view('login', [
+        'message' => 'It is AUTH page'
+    ]);
+}
+```
+
+```html
+<!-- resources/views/login.blade.php -->
+
+<p>{{ $message }}</p> <!-- It is AUTH page -->
+```
