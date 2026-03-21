@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\DBCheckController; // сами подключите контроллер
+use App\Http\Controllers\AuthController;
 
-Route::get('/', [DBCheckController::class, 'index']);
+Route::get('/', function() {
+    return 'hello!';
+});
+
+Route::get('login', [AuthController::class, 'showLoginForm']);
+Route::post('login', [AuthController::class, 'login'])->name('login');
