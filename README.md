@@ -118,7 +118,28 @@ class AuthController extends Controller
 }
 ```
 
-Имейте в виду, что каждый публичный метод, который вызывается маршрутизатором, по умолчанию принимает объект типа **Request** (даже если вы не указали его в аргументах метода).
+### Функция view()
+
+Функция ``view()`` берёт шаблоны из папки ``resources/views`` и рендерит их, возвращая статические html-страницы. Первым аргументом она принимает название шаблона (например, если шаблон находится в ``resources/views/login.blade.php``, то название - ``login``, без двойного расширения файла), а вторым аргументом - ассоциативный массив с данными, которые можно будет использовать внутри шаблона.
+
+```php
+public function showLoginForm(Request $request)
+{
+    return view('login', [
+        'message' => 'It is AUTH page'
+    ]);
+}
+```
+
+```html
+<!-- resources/views/login.blade.php -->
+
+<p>{{ $message }}</p> <!-- It is AUTH page -->
+```
+
+### Объект запроса - Request
+
+Каждый публичный метод, который вызывается маршрутизатором, по умолчанию принимает объект типа **Request** (даже если вы не указали его в аргументах метода).
 
 ```php
 public function showLoginForm(Request $request)
@@ -227,6 +248,8 @@ class AuthController extends Controller
 
 Метод ``validate`` принимает ассоциативный массив, где название элемента - поле (инпут) POST-запроса, а содержимое элемента - правила.
 
+> Если валидация прошла успешно, в **$data** записываются поля, правила для которых вы указывали ранее. Всё записывается как ассоциативный массив.
+
 ### Основные правила валидации
 
 - ``required``: обязательное поле.
@@ -243,69 +266,76 @@ class AuthController extends Controller
 
 Пример правил:
 ```php
-'password' => [
-    'required',
-    'min:8',
-    'regex:/[A-Z]/',  // заглавная буква
-    'regex:/[a-z]/',  // строчная буква
-    'regex:/[0-9]/',  // цифра
-    'regex:/[\W_]/',  // спецсимвол
-],
+$data = $request->validate([
+    'password' => [
+        'required',
+        'min:8',
+        'regex:/[A-Z]/',  // заглавная буква
+        'regex:/[a-z]/',  // строчная буква
+        'regex:/[0-9]/',  // цифра
+        'regex:/[\W_]/',  // спецсимвол
+    ],
 
-'login' => [
-    'required',
-    'min:6',
-    'max:20',
-    'regex:/^[a-zA-Z0-9]+$/',   // только латинские буквы и числа
-    'unique:users,login'        // чтобы не было одинаковых логинов
-],
+    'login' => [
+        'required',
+        'min:6',
+        'max:20',
+        'regex:/^[a-zA-Z0-9]+$/',   // только латинские буквы и числа
+        'unique:users,login'        // чтобы не было одинаковых логинов
+    ],
 
-'full_name' => [
-    'required',
-    'min:2',
-    'max:100',
-    'regex:/^[а-яА-ЯёЁ\s\-]+$/u', // только кириллица, пробелы и тире
-],
+    'full_name' => [
+        'required',
+        'min:2',
+        'max:100',
+        'regex:/^[а-яА-ЯёЁ\s\-]+$/u', // только кириллица, пробелы и тире
+    ],
 
-'phone' => [
-    'required',
-    'regex:/^8\(\d{3}\)\d{3}-\d{2}-\d{2}$/', // формат 8(XXX)XXX-XX-XX
-    'unique:users,phone'
-],
+    'phone' => [
+        'required',
+        'regex:/^8\(\d{3}\)\d{3}-\d{2}-\d{2}$/', // формат 8(XXX)XXX-XX-XX
+        'unique:users,phone'
+    ],
 
-'email' => [
-    'required',
-    'email',
-],
+    'email' => [
+        'required',
+        'email',
+    ]
+]);
 ```
 
 ### Провал валидации
 
-Если данные НЕ прошли валидацию, то контроллер возвращает редирект на ту же страницу вместе с ошибкой.
+Если данные НЕ прошли валидацию, то контроллер возвращает редирект на предыдущую страницу вместе с ошибкой.
+
 ```php
-    public function login(Request $request)
-    {
-        $data = $request->validate([
-            'login' => [
-                'required'
-            ],
+public function login(Request $request)
+{
+    $data = $request->validate([
+        'login' => [
+            'required'
+        ],
 
-            'password' => [
-                'required'
-            ]
+        'password' => [
+            'required'
+        ]
+    ]);
+
+    // Представим, что данные НЕ прошли. Laravel автоматически 
+    // совершает тот же редирект; и ошибки - в том же формате: 
+    // ассоциативный массив, где название элемента - поле, а
+    // содержимое элемента - сообщение об ошибке.
+
+    return back()
+        ->withErrors([
+            'login' => 'ERROR MESSAGE',
+            'password' => 'ERROR MESSAGE'
         ]);
-
-        // Представим, что данные НЕ прошли
-
-        return back()
-            ->withErrors([
-                'login' => 'ERROR MESSAGE',
-                'password' => 'ERROR MESSAGE'
-            ]);
-    }
+}
 ```
 
-И мы увидим эти ошибки, если добавим условие для их отображения.
+Т.к. вместе с редиректом прикрепляется массив с ошибками, то мы увидим эти ошибки, если добавим условие для их отображения.
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -334,4 +364,55 @@ class AuthController extends Controller
     </form>
 </body>
 </html>
+```
+
+## Авторизация
+
+```php
+<?php
+
+// app/Http/Controllers/AuthController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Фасад авторизации
+
+use App\Models\User; // подключаем нашу модель пользователя
+
+class AuthController extends Controller
+{
+    public function showLoginForm(Request $request)
+    {
+        return view('login');
+    }
+
+    public function login(Request $request)
+    {
+        $data = $request->validate([
+            'login' => ['required', 'exists:users,login'],
+            'password' => ['required']
+        ]);
+
+        $user = User::where('login', 'Admin')->first();
+
+        if ($user->password !== $data['password'])
+            return back()
+                ->withErrors([
+                    'login' => 'Wrong data'
+                ]);
+
+        Auth::login($user);
+
+        return redirect('/');
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        Auth::logout($user);
+
+        return redirect('/');
+    }
+}
 ```
