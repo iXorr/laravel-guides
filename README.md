@@ -11,3 +11,40 @@
 ## Представления
 
 https://laravel.su/docs/10.x/blade
+
+
+### Редиректы
+
+Редиректы (функции ``redirect`` и ``back``) принято вызывать при возврате метода.
+
+```php
+public function redir1()
+{
+    return redirect('/'); // в качестве аргумента можно указать просто ссылку
+}
+
+public function redir2()
+{
+    return redirect()
+        ->route('login'); // или название роута
+}
+```
+
+> Для ``back()`` нет смысла прописывать ссылку или название роута.
+
+Также, к любой функции редиректа можно добавить дополнительные данные.
+
+Например, возвращать флеш-сообщение, которое будет доступно в шаблоне через функцию ``session()``.
+```php
+public function redir1()
+{
+    return redirect('/')
+        ->with('message', 'Howdy!');
+}
+```
+
+```html
+<p>{{ session('message') }}</p>
+```
+
+... также добавить withErrors и withInput
