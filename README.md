@@ -400,3 +400,39 @@ class AuthController extends Controller
 ```
 
 > Если наш пользователь зашёл в систему, мы можем получить информацию о нём через **$request**, как это показано в методе ``logout``.
+
+## Группа маршрутов и middleware
+
+Пока наше приложение растёт, в ``routes/web.php`` появляется всё больше маршрутов. Некоторые из них имеют одинаковые настройки: например, часть маршрутов должна быть доступна только авторизованным администраторам.
+
+Для таких случаев в Laravel существуют группы маршрутов и **middleware**.
+
+> Middleware - промежуточное ПО, которое "оборачивает" запрос до того, как он попадает в контроллер (и после того, как контроллер вернёт ответ). Проще говоря, это - фильтр.
+
+Мы будем использовать готовое middleware: ``auth`` - от фасада **Auth**.
+
+```php
+<?php
+
+// routes/web.php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CourseController;
+
+Route::get('/', function() {
+    return 'hello!';
+});
+
+// Теперь курсы могут просматривать 
+// только авторизованные пользователи
+
+Route::middleware('auth')->group(function() {
+    Route::get('courses', [CourseController::class, 'index']);
+    Route::get('courses/{id}', [CourseController::class, 'show']);
+});
+
+Route::get('login', [AuthController::class, 'showLoginForm']);
+Route::post('login', [AuthController::class, 'login'])->name('login');
+```
