@@ -162,6 +162,32 @@ class CourseController extends Controller
 }
 ```
 
+> Не важно, как мы назовём аргументы, идущие после **$request**. Это может быть **$id**, **$course** или вообще **$param**. Просто имейте в виду, что значение имеет ТОЛЬКО порядок следования аргументов.
+
+```php
+// routes/web.php
+
+Route::get('courses/{course_group}/{course}', [CourseController::class, 'show']);
+```
+
+```php
+<?php
+
+// app/Http/Controllers/CourseController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class CourseController extends Controller
+{
+    public function show(Request $request, string $group, string $entity)
+    {
+        return "Вы запросили: $group, $entity";
+    }
+}
+```
+
 ### Валидация
 
 Вот ваша страница авторизации с формой:
