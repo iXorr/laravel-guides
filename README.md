@@ -103,9 +103,9 @@ class CourseController extends Controller {
 
 И теперь, **$course** - это полноценная модель.
 
-Если в методе контроллера для принимающего аргумента из роута вы указываете тип модели, то значение аргумента берётся как **ID** и вставляется в метод ``::find($id)``. Таким образом возвращается либо модель с соответвующим ID, либо NULL.
+Если в методе контроллера для принимающего аргумента из роута вы указываете тип модели, то значение аргумента берётся как **ID** и вставляется в метод ``::findOrFail($id)``. Таким образом возвращается либо модель с соответвующим ID, либо выбрасывается 404.
 
-## Реализация CRUD в контроллерах
+## Реализация CRUD
 
 Напомню, что метод ``validate()`` возвращает только те поля, которые проходят валидацию, и только в виде ассоциативного массива: ``[НАЗВАНИЕ_ПОЛЯ => ЗНАЧЕНИЕ_ПОЛЯ]``.
 
@@ -177,3 +177,141 @@ public function update(Request $request, Course $course)
 
 @endsection
 ```
+
+### Удаление
+
+```php
+// app/Http/Controllers/CourseController.php
+
+public function destroy(Course $course)
+{
+    $course->delete();
+
+    return redirect()
+        ->route('courses.index')
+        ->with('message', 'Course deleted!');
+}
+```
+
+И кнопка для удаления в компоненте списка сущностей.
+
+```html 
+<!-- resources/views/courses/index.blade.php -->
+
+@props(['courses'])
+
+@extends('layout')
+@section('content')
+
+@if ($courses->isNotEmpty())
+    @foreach ($courses as $course)
+        <p>{{ $course->id }} | {{ $course->title }}</p>
+
+        <form
+            action="{{ route('courses.destroy', $course->id) }}"
+            method="POST"
+        >
+            @csrf
+            @method('delete')
+
+            <button type="submit">Delete</button>
+        </form>
+    @endforeach
+@else
+    <p>Empty list</p>
+@endif
+
+@endsection
+```
+
+## Bootstrap и Zeal
+
+В рамках дем. экзамена будет дана электронная документация - **Zeal**.
+
+Её главное преимущество - в ней даются целые куски разметки на **Bootstrap**. То есть даже необязательно знать эту CSS-библиотеку, чтобы делать красивый и адаптивный дизайн.
+
+Просто сохраните Bootstrap-файлы (CSS, JS) в ``/public``, а затем - подключите эти файлы в главном шаблоне через функцию ``asset()``: в аргументе указывайте путь к файлу относительно ``/public``.
+
+```html
+<!-- resources/views/layout.blade.php -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel App</title>
+
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.css') }}">
+</head>
+<body>
+    <header>
+        @include('navbar')
+    </header>
+
+    <main>
+        @yield('content')
+    </main>
+
+    <script src="{{ asset('js/bootstrap.bundle.js') }}"></script>
+</body>
+</html>
+```
+
+И, например, найдя компонент формы и скопировав его из Zeal-документации.
+
+<img src="./images/zeal.png" alt="zeal" />
+
+Просто вставляйте его заместо уже существующей формы и убирайте лишнее.
+
+```html
+<!-- resources/views/login.blade.php -->
+
+@extends('layout')
+@section('content')
+
+@if ($errors->any())
+    @php
+        dump($errors->toArray());
+    @endphp
+@endif
+
+<form
+    action="{{ route('login') }}"
+    method="POST"
+>
+    @csrf
+    <div class="mb-3">
+        <label class="form-label">Login</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+
+@endsection
+```
+
+## Что следует почитать о Bootstrap
+
+Темы даны в тех же названиях, что и в документации.
+
+### Базовые темы
+
+- ``Spacing``: как применять ``margin`` и ``padding`` через утилитарные классы ``mt-1``, ``m-4`` и другие.
+- ``Flex`` и ``Columns``: как размещать компоненты (в том числе адаптивно).
+
+### Наиболее полезные компоненты
+
+- ``Cards`` - карточки.
+- ``Tables`` - таблицы.
+- ``Alerts``, ``Toasts`` - сообщения об ошибках.
+- ``Forms`` - формы.
+- ``Modal`` - модальные окна. 
+
+> По модальным окнам: учтите, что требуется подключить и JS-скрипт для Boostrap, а также задавать для каждого модального окна **уникальный** ID (иначе при добавлении нескольких модальных окон - включая кнопки для их открытия - вы будете открывать только одну).
