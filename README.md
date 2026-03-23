@@ -38,7 +38,7 @@ Route::resource('courses', CourseController::class);
 ```
 
 Эта запись разворачивается в следующий набор маршрутов:
-```bash
+```
 +-----------+-------------------------+------------------+---------+
 | Метод     | URI                     | Имя роута        | Метод   |
 +-----------+-------------------------+------------------+---------+
@@ -104,3 +104,76 @@ class CourseController extends Controller {
 И теперь, **$course** - это полноценная модель.
 
 Если в методе контроллера для принимающего аргумента из роута вы указываете тип модели, то значение аргумента берётся как **ID** и вставляется в метод ``::find($id)``. Таким образом возвращается либо модель с соответвующим ID, либо NULL.
+
+## Реализация CRUD в контроллерах
+
+Напомню, что метод ``validate()`` возвращает только те поля, которые проходят валидацию, и только в виде ассоциативного массива: ``[НАЗВАНИЕ_ПОЛЯ => ЗНАЧЕНИЕ_ПОЛЯ]``.
+
+CRUD-методы - ``create`` и ``update`` - как раз тоже принимают в качестве аргумента такие же ассоциативные массивы.
+
+### Создание
+
+```php
+// app/Http/Controllers/CourseController.php
+
+public function store(Request $request)
+{
+    $data = $request->validate([
+        'title' => ['required'],
+        'wanted_start_date' => ['required'],
+        'payment_method' => ['required'],
+    ]);
+
+    $course = Course::create($data);
+
+    return redirect()
+        ->route('courses.index')
+        ->with('message', 'Course created!');
+}
+```
+
+### Редактирование
+
+```php
+// app/Http/Controllers/CourseController.php
+
+public function update(Request $request, Course $course)
+{
+    $data = $request->validate([
+        'title' => ['required'],
+        'wanted_start_date' => ['required'],
+        'payment_method' => ['required'],
+    ]);
+
+    $course->update($data); // отличие только в одной строке
+
+    return redirect()
+        ->route('courses.index')
+        ->with('message', 'Course updated!');
+}
+```
+
+Но следует учесть, что этот метод принимает только PUT/PATCH-методы.
+
+Значит, в форме, из которой данные будут отправляться, нужно переопределять метод.
+
+```html
+<!-- resources/views/courses/edit.blade.php -->
+
+@props(['course'])
+
+@extends('layout')
+@section('content')
+
+<form
+    action="{{ route('courses.update', $course->id) }}"
+    method="POST"
+>
+    @csrf
+    @method('put')
+
+    <!-- Остальная форма -->
+</form>
+
+@endsection
+```
