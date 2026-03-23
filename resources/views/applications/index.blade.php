@@ -8,7 +8,7 @@
         <p>{{ $application->id }} | {{ $application->title }}</p>
     @endforeach
 @else
-    <p>Empty list</p>
+    <div>Empty list</div>
 @endif
 
 @endsection

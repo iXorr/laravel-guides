@@ -7,6 +7,6 @@
     @endphp
 @endif
 
-<p>Welcome to Main page!</p>
+<div>Welcome to Main page!</div>
 
 @endsection
