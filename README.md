@@ -309,6 +309,7 @@ public function destroy(Course $course)
 ### Наиболее полезные компоненты
 
 - ``Cards`` - карточки.
+- ``Navbar`` - навигационная панель.
 - ``Tables`` - таблицы.
 - ``Alerts``, ``Toasts`` - сообщения об ошибках.
 - ``Forms`` - формы.
