@@ -119,7 +119,7 @@ class AuthController extends Controller
 
 ### Объект запроса - Request
 
-Если нам нужно воспользоваться данными HTTP-запроса, пишите первым аргумент объект типа **Request**.
+Если вам нужно воспользоваться данными HTTP-запроса, пишите первым аргумент объект типа **Request**.
 
 ```php
 public function showLoginForm(Request $request)
