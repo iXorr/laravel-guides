@@ -27,7 +27,12 @@ provide('navigation', navigation)
   <UApp>
     <AppHeader />
 
-    <UError :error="error" />
+    <UError
+      :error="error"
+      :clear="{
+        label: 'Вернуться на главную'
+      }"
+    />
 
     <AppFooter />
 
