@@ -4,8 +4,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/ui',
-    '@nuxt/content',
-    'nuxt-og-image'
+    '@nuxt/content'
   ],
 
   ssr: true,
