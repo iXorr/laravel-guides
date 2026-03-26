@@ -7,7 +7,7 @@ export default defineAppConfig({
   },
 
   seo: {
-    siteName: 'Laravel Docs',
+    siteName: 'EasyCourses',
   },
 
   header: {

@@ -44,9 +44,9 @@ const { header } = useAppConfig();
           :to="header?.to || '/'"
           class="flex gap-3 items-center"
         >
-          <AppLogo class="w-auto h-9 shrink-0" />
+          <NuxtImg src="/logo.svg" class="w-auto h-9 shrink-0" />
 
-          <div class="font-bold">Гайд по Laravel</div>
+          <div class="font-bold font-sans tracking-widest">EasyCourses</div>
         </NuxtLink>
       </template>
 

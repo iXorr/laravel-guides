@@ -1,6 +1,6 @@
 ---
 seo:
-  title: Laravel Guides
+  title: EasyCourses
   description: Сжатое руководство по Laravel
 ---
 

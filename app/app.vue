@@ -10,17 +10,16 @@ const { data: files } = useLazyAsyncData('search', () => queryCollectionSearchSe
 
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-  link: [{ rel: 'icon', href: '/favicon.ico' }],
+  link: [{ rel: 'icon', href: '/favicon.svg' }],
   htmlAttrs: {
     lang: 'ru',
   },
 });
 
-useSeoMeta({
-  titleTemplate: `%s - ${seo?.siteName}`,
-  ogSiteName: seo?.siteName,
-  twitterCard: 'summary_large_image',
-});
+// useSeoMeta({
+  // titleTemplate: `%s - ${seo?.siteName}`,
+  // ogSiteName: seo?.siteName,
+// });
 
 provide('navigation', navigation);
 </script>
