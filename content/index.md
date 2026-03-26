@@ -4,7 +4,7 @@ seo:
   description: Сжатое руководство по Laravel
 ---
 
-::u-page-hero{class="dark:bg-gradient-to-b from-neutral-900 to-neutral-950"}
+::u-page-hero
 ---
 orientation: horizontal
 ---
@@ -57,7 +57,7 @@ orientation: horizontal
   :::
 ::
 
-::u-page-section{class="dark:bg-neutral-950"}
+::u-page-section
 #title
 Создано для разрабов. Работает на Laravel.
 

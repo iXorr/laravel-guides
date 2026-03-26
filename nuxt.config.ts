@@ -4,13 +4,13 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/ui',
-    '@nuxt/content'
+    '@nuxt/content',
   ],
 
   ssr: true,
 
   devtools: {
-    enabled: false
+    enabled: false,
   },
 
   css: ['~/assets/css/main.css'],
@@ -19,44 +19,38 @@ export default defineNuxtConfig({
     build: {
       markdown: {
         highlight: {
-          langs: ['php', 'blade']
+          langs: ['php', 'blade'],
         },
 
         toc: {
-          searchDepth: 1
-        }
-      }
-    }
+          searchDepth: 1,
+        },
+      },
+    },
   },
-
-  experimental: {
-    asyncContext: true
-  },
-
-  compatibilityDate: '2024-07-11',
 
   nitro: {
     preset: 'static',
 
     prerender: {
       routes: [
-        '/'
+        '/',
       ],
       crawlLinks: true,
-      autoSubfolderIndex: false
-    }
+      autoSubfolderIndex: false,
+    },
   },
 
   eslint: {
     config: {
       stylistic: {
-        commaDangle: 'never',
-        braceStyle: '1tbs'
-      }
-    }
+        semi: true,
+        quotes: 'single',
+      },
+    },
   },
 
   icon: {
-    provider: 'iconify'
-  }
-})
+    provider: 'iconify',
+  },
+});

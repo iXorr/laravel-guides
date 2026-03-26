@@ -1,0 +1,111 @@
+{
+  // Включение Eslint для этих типов файлов
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+
+  // Использование eslint.config.js вместо .eslintrc
+  "eslint.useFlatConfig": true,
+
+  // Eslint может быть форматтером (!!!конфликт)
+  "eslint.format.enable": true,
+
+  // Автоформатирование при сохранении
+  "editor.formatOnSave": true,
+  
+  // ...
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+  },
+
+  // Делает Prettier главным форматтером (!!!конфликт)
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+
+  // Встроенная проверка TS/JS (TypeScript Language Server)
+  "js/ts.validate.enabled": true,
+
+  // Автоматическое обновление импортов при перемещении файлов
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+
+  // Отключает предупреждение при вставке многострочного кода в терминал
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+
+  // Отключает подтверждение при drag & drop файлов в explorer
+  "explorer.confirmDragAndDrop": false,
+
+  // Отключает "липкий" скролл (заголовки функций/классов сверху)
+  "editor.stickyScroll.enabled": false,
+
+  // То же самое для терминала (редко используется)
+  "terminal.integrated.stickyScroll.enabled": false,
+
+  // Отключает подтверждение удаления файлов (!!!опасно)
+  "explorer.confirmDelete": false,
+
+  // Отключает подтверждение вставки файлов через нативный диалог
+  "explorer.confirmPasteNative": false,
+
+  // Открывает файлы даже в недоверенных workspace (снижает безопасность)
+  "security.workspace.trust.untrustedFiles": "open",
+
+  // Разрешает доступ к WSL-хосту (для работы с Linux-средой)
+  "security.allowedUNCHosts": ["wsl.localhost"],
+
+  // Не открывает стартовую страницу при запуске VS Code
+  "workbench.startupEditor": "none",
+
+  // Размер табуляции = 2 пробела
+  "editor.tabSize": 2,
+
+  // Быстрые подсказки (autocomplete) везде: код, комментарии, строки
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": true,
+    "strings": true
+  },
+
+  // Показывает подсказки при вводе триггер-символов (., (, и т.д.)
+  "editor.suggestOnTriggerCharacters": true,
+
+  // Подсказки берутся из всех открытых файлов, а не только текущего
+  "editor.wordBasedSuggestions": "allDocuments",
+
+  // Показывает подсказки параметров функций при вводе
+  "editor.parameterHints.enabled": true,
+
+  // Отображение сессий чата в виде вертикального списка
+  "chat.viewSessions.orientation": "stacked",
+
+  // Подключает инструкции для AI из .github/instructions
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true
+  },
+
+  // Полностью отключает GitHub Copilot во всех типах файлов
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+    "html": false
+  },
+
+  // Убирает стартовую подсказку в терминале
+  "terminal.integrated.initialHint": false,
+
+  // Разрешённые домены для загрузки JSON-схем
+  "json.schemaDownload.trustedDomains": {
+    "https://developer.microsoft.com/json-schemas/": true,
+    "https://esm.sh": true,
+    "https://json-schema.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://raw.githubusercontent.com/devcontainers/spec/": true,
+    "https://raw.githubusercontent.com/microsoft/vscode/": true,
+    "https://schemastore.azurewebsites.net/": true,
+    "https://www.schemastore.org/": true
+  },
+
+  // Кастомизация: тема и иконки
+  "workbench.colorTheme": "Catppuccin Frappé",
+  "workbench.iconTheme": "catppuccin-frappe",
+  "workbench.statusBar.visible": true,
+  "chat.agentsControl.enabled": false
+}
