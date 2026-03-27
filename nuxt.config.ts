@@ -38,11 +38,9 @@ export default defineNuxtConfig({
     preset: 'static',
 
     prerender: {
-      routes: [
-        '/',
-      ],
       crawlLinks: true,
-      autoSubfolderIndex: false,
+      routes: ['/'],
+      ignore: ['/admin'],
     },
   },
 
