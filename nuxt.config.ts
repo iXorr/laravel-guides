@@ -13,6 +13,11 @@ export default defineNuxtConfig({
     enabled: false,
   },
 
+  app: {
+    baseURL: '/laravel-guides/',
+    buildAssetsDir: 'assets',
+  },
+
   css: ['~/assets/css/main.css'],
 
   content: {
